@@ -1,0 +1,24 @@
+{
+	"name" : "bread/push",
+	"description" : "Push Notification",
+	"type" : "library",
+	"authors" : [{
+			"name" : "Alex Tomasello",
+			"email" : "alex.tomasello@saiv.it"
+		}
+	],
+	"keywords" : [
+		"bread pushnotification android ios"
+	],
+	"homepage" : "https://github.com/breadphp/push",
+	"license" : "CC-BY-3.0",
+	"require" : {
+		"php" : ">=5.5",
+		"bread/rest" : "~0.6"
+	},
+	"autoload" : {
+		"psr-0" : {
+			"Bread\\Push" : "src"
+		}
+	}
+}
