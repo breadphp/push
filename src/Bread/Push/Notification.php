@@ -50,7 +50,7 @@ class Notification
             'registration_ids' => (array) $devices,
             'data' => $data
         );
-        return json_encode($fields, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP | JSON_UNESCAPED_UNICODE);
+        $payload = json_encode($fields, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP | JSON_UNESCAPED_UNICODE);
         $ch = curl_init(self::URL_ANDROID);
         if (isset($this->proxy)) {
             curl_setopt($ch, CURLOPT_PROXY, $this->proxy);
@@ -59,7 +59,7 @@ class Notification
         curl_setopt($ch, CURLOPT_HTTPHEADER, $this->getAndroidHeaders(Configuration::get(__CLASS__, 'push.android.apikey')));
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-        curl_setopt($ch, CURLOPT_POSTFIELDS, $this->getPostFields($devices, $message));
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $payload);
         $result = curl_exec($ch);
         if ($result === false) {
             throw new Exception(curl_error($ch));
