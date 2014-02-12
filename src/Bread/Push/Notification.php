@@ -21,7 +21,7 @@ class Notification
         $this->proxy = Configuration::get(__CLASS__, 'push.proxy');
     }
 
-    public function notify($message = '')
+    public function notify($message = '', $fields = array())
     {
         $android = array();
         $ios = array();
@@ -36,15 +36,21 @@ class Notification
             }
         }
         if ($android) {
-            return $this->notifyAndroid($android, $message);
+            return $this->notifyAndroid($android, $message, $fields);
         }
         if ($ios) {
-            return $this->notifyIos($ios, $message);
+            return $this->notifyIos($ios, $message, $fields);
         }
     }
 
-    protected function notifyAndroid($devices, $message)
+    protected function notifyAndroid($devices, $message, $data = array())
     {
+        $data['message'] = $message;
+        $fields = array(
+            'registration_ids' => (array) $devices,
+            'data' => $data
+        );
+        return json_encode($fields, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP | JSON_UNESCAPED_UNICODE);
         $ch = curl_init(self::URL_ANDROID);
         if (isset($this->proxy)) {
             curl_setopt($ch, CURLOPT_PROXY, $this->proxy);
@@ -62,7 +68,7 @@ class Notification
         return $result;
     }
 
-    protected function notifyIos($devices, $message)
+    protected function notifyIos($devices, $message, $data = array())
     {
         $stream = stream_context_create();
         stream_context_set_option($stream, 'ssl', 'local_cert', Configuration::get(__CLASS__, 'push.ios.local_cert'));
@@ -71,10 +77,10 @@ class Notification
         if (!$fp) {
             throw new Exception("Failed to connect: $err $errstr" . PHP_EOL);
         }
-        $body['aps'] = array(
+        $data['aps'] = array(
             'alert' => $message
         );
-        $payload = json_encode($body, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP | JSON_UNESCAPED_UNICODE);
+        $payload = json_encode($data, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP | JSON_UNESCAPED_UNICODE);
         $msg = '';
         foreach($devices as $device) {
             $msg = chr(0)
@@ -90,20 +96,9 @@ class Notification
 
     protected function getAndroidHeaders($apikey)
     {
-        return [
+        return array(
             'Authorization: key=' . $apikey,
             'Content-Type: application/json'
-        ];
-    }
-
-    protected function getPostFields($regId, $data, $datatype = "message")
-    {
-        $fields = array(
-            'registration_ids' => (array) $regId,
-            'data' => array(
-                $datatype => $data
-            )
         );
-        return json_encode($fields, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP | JSON_UNESCAPED_UNICODE);
     }
 }

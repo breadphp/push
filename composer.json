@@ -8,7 +8,7 @@
 		}
 	],
 	"keywords" : [
-		"bread pushnotification android ios"
+		"bread", "push", "notification", "android", "ios"
 	],
 	"homepage" : "https://github.com/breadphp/push",
 	"license" : "CC-BY-3.0",
