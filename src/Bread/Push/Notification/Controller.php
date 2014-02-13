@@ -1,10 +1,11 @@
 <?php
-namespace Bread\Push;
+namespace Bread\Push\Notification;
 
+use Bread\Push\Device;
 use Bread\Configuration\Manager as Configuration;
 use Exception;
 
-class Notification
+class Controller
 {
 
     const URL_ANDROID = 'https://android.googleapis.com/gcm/send';
@@ -21,7 +22,7 @@ class Notification
         $this->proxy = Configuration::get(__CLASS__, 'push.proxy');
     }
 
-    public function notify($message = '', $fields = array())
+    public function notify($message = null, $badge = null, $sound = null, $fields = array())
     {
         $android = array();
         $ios = array();
@@ -36,15 +37,18 @@ class Notification
             }
         }
         if ($android) {
-            return $this->notifyAndroid($android, $message, $fields);
+            return $this->notifyAndroid($android, $message, $badge, $sound, $fields);
         }
         if ($ios) {
-            return $this->notifyIos($ios, $message, $fields);
+            return $this->notifyIos($ios, $message, $badge, $sound, $fields);
         }
     }
 
-    protected function notifyAndroid($devices, $message, $data = array())
+    protected function notifyAndroid($devices, $message, $badge, $sound, $data = array())
     {
+        if (null === $message) {
+            return false;
+        }
         $data['message'] = $message;
         $fields = array(
             'registration_ids' => (array) $devices,
@@ -62,13 +66,14 @@ class Notification
         curl_setopt($ch, CURLOPT_POSTFIELDS, $payload);
         $result = curl_exec($ch);
         if ($result === false) {
+            error_log(curl_error($ch));
             throw new Exception(curl_error($ch));
         }
         curl_close($ch);
         return $result;
     }
 
-    protected function notifyIos($devices, $message, $data = array())
+    protected function notifyIos($devices, $message, $badge, $sound, $data = array())
     {
         $stream = stream_context_create();
         stream_context_set_option($stream, 'ssl', 'local_cert', Configuration::get(__CLASS__, 'push.ios.local_cert'));
@@ -77,12 +82,19 @@ class Notification
         if (!$fp) {
             throw new Exception("Failed to connect: $err $errstr" . PHP_EOL);
         }
-        $data['aps'] = array(
-            'alert' => $message
-        );
+        $data['aps'] = array();
+        if (is_string($message)) {
+            $data['aps']['alert'] = $message;
+        }
+        if (is_int($badge)) {
+            $data['aps']['badge'] = $badge;
+        }
+        if (is_string($sound)) {
+            $data['aps']['sound'] = $sound;
+        }
         $payload = json_encode($data, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP | JSON_UNESCAPED_UNICODE);
         $msg = '';
-        foreach($devices as $device) {
+        foreach ($devices as $device) {
             $msg = chr(0)
                 . pack('n', 32)
                 . pack('H*', $device)

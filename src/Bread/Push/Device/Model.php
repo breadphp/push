@@ -18,6 +18,7 @@ class Model extends REST\Model
     protected $aro;
 
     protected $uuid;
+
 }
 
 Configuration::defaults('Bread\Push\Device\Model', array(
