@@ -37,10 +37,10 @@ class Controller
             }
         }
         if ($android) {
-            return $this->notifyAndroid($android, $message, $badge, $sound, $fields);
+            $this->notifyAndroid($android, $message, $badge, $sound, $fields);
         }
         if ($ios) {
-            return $this->notifyIos($ios, $message, $badge, $sound, $fields);
+            $this->notifyIos($ios, $message, $badge, $sound, $fields);
         }
     }
 
@@ -89,13 +89,13 @@ class Controller
         if (is_int($badge)) {
             $data['aps']['badge'] = $badge;
         }
-        if (is_string($sound)) {
-            $data['aps']['sound'] = $sound;
+        if (is_string($sound) || is_string($message)) {
+            $data['aps']['sound'] = is_string($sound) ? $sound : 'default';
         }
         $payload = json_encode($data, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP | JSON_UNESCAPED_UNICODE);
         $msg = '';
         foreach ($devices as $device) {
-            $msg = chr(0)
+            $msg .= chr(0)
                 . pack('n', 32)
                 . pack('H*', $device)
                 . pack('n', strlen($payload))
