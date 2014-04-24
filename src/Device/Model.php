@@ -35,6 +35,6 @@ Configuration::defaults('Bread\Push\Device\Model', array(
         ),
         'uuid' => array(
             'type' => 'string'
-        ),
+        )
     )
 ));

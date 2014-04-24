@@ -37,10 +37,10 @@ class Controller
             }
         }
         if ($android) {
-            $this->notifyAndroid($android, $message, $badge, $sound, $fields);
+            return $this->notifyAndroid($android, $message, $badge, $sound, $fields);
         }
         if ($ios) {
-            $this->notifyIos($ios, $message, $badge, $sound, $fields);
+            return $this->notifyIos($ios, $message, $badge, $sound, $fields);
         }
     }
 

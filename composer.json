@@ -8,7 +8,11 @@
 		}
 	],
 	"keywords" : [
-		"bread", "push", "notification", "android", "ios"
+		"bread",
+		"push",
+		"notification",
+		"android",
+		"ios"
 	],
 	"homepage" : "https://github.com/breadphp/push",
 	"license" : "CC-BY-3.0",
@@ -17,8 +21,8 @@
 		"bread/rest" : "~0.6"
 	},
 	"autoload" : {
-		"psr-0" : {
-			"Bread\\Push" : "src"
+		"psr-4" : {
+			"Bread\\Push\\" : "src"
 		}
 	}
 }
