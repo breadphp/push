@@ -10,16 +10,16 @@ class Controller
 
     const URL_ANDROID = 'https://android.googleapis.com/gcm/send';
 
-    const URL_IOS = 'ssl://gateway.sandbox.push.apple.com:2195';
-
-    private $proxy;
+    const URL_IOS = 'ssl://gateway.sandbox.apple.com:2195';
 
     private $devices;
 
-    public function __construct($devices)
+    private $domain;
+
+    public function __construct($devices, $domain = '__default__')
     {
         $this->devices = $devices;
-        $this->proxy = Configuration::get(__CLASS__, 'push.proxy');
+        $this->domain = $domain;
     }
 
     public function notify($message = null, $badge = null, $sound = null, $fields = array())
@@ -56,11 +56,11 @@ class Controller
         );
         $payload = json_encode($fields, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP | JSON_UNESCAPED_UNICODE);
         $ch = curl_init(self::URL_ANDROID);
-        if (isset($this->proxy)) {
-            curl_setopt($ch, CURLOPT_PROXY, $this->proxy);
+        if (Configuration::get(__CLASS__, 'proxy', $this->domain)) {
+            curl_setopt($ch, CURLOPT_PROXY, Configuration::get(__CLASS__, 'proxy', $this->domain));
         }
         curl_setopt($ch, CURLOPT_POST, true);
-        curl_setopt($ch, CURLOPT_HTTPHEADER, $this->getAndroidHeaders(Configuration::get(__CLASS__, 'push.android.apikey')));
+        curl_setopt($ch, CURLOPT_HTTPHEADER, $this->getAndroidHeaders(Configuration::get(__CLASS__, 'android.apikey', $this->domain)));
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
         curl_setopt($ch, CURLOPT_POSTFIELDS, $payload);
@@ -76,8 +76,8 @@ class Controller
     protected function notifyIos($devices, $message, $badge, $sound, $data = array())
     {
         $stream = stream_context_create();
-        stream_context_set_option($stream, 'ssl', 'local_cert', Configuration::get(__CLASS__, 'push.ios.local_cert'));
-        stream_context_set_option($stream, 'ssl', 'passphrase', Configuration::get(__CLASS__, 'push.ios.passphrase'));
+        stream_context_set_option($stream, 'ssl', 'local_cert', Configuration::get(__CLASS__, 'ios.local_cert', $this->domain));
+        stream_context_set_option($stream, 'ssl', 'passphrase', Configuration::get(__CLASS__, 'ios.passphrase', $this->domain));
         $fp = stream_socket_client(self::URL_IOS, $err, $errstr, 60, STREAM_CLIENT_CONNECT | STREAM_CLIENT_PERSISTENT, $stream);
         if (!$fp) {
             throw new Exception("Failed to connect: $err $errstr" . PHP_EOL);
